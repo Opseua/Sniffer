@@ -37,6 +37,7 @@ from stopwatch import stopwatch
 def dateHour():
     now = datetime.now()
     return {
+        "yea": f"{now.strftime('%Y')}",
         "day": f"{now.strftime('%d')}",
         "mon": f"{now.strftime('%m')}",
         "hou": f"{now.strftime('%H')}",
@@ -53,7 +54,7 @@ def logConsole(inf):
     day, hou = f"DIA_{retDateHour['day']}", f"{retDateHour['hou']}"
     min_, sec = f"{retDateHour['min']}", f"{retDateHour['sec']}"
     mil = f"{retDateHour['mil']}"
-    fileName = f"logs/Python/MES_{retDateHour['mon']}_{retDateHour['monNam']}/{day}/{hou}.00-{hou}.59_log.txt"
+    fileName = f"logs/Python/ANO_{retDateHour['yea']}/MES_{retDateHour['mon']}_{retDateHour['monNam']}/{day}/{hou}.00-{hou}.59_log.txt"
     os.makedirs(os.path.dirname(fileName), exist_ok=True)
     with open(fileName, "a", encoding="utf-8") as file:
         file.write(f"→ {hou}:{min_}:{sec}.{mil}\n{str(inf)}\n\n")
@@ -79,7 +80,7 @@ def errAll(exceptErr):
     day, hou = f"DIA_{retDateHour['day']}", f"{retDateHour['hou']}"
     min_, sec = f"{retDateHour['min']}", f"{retDateHour['sec']}"
     mil = f"{retDateHour['mil']}"
-    fileName = f"logs/Python/MES_{retDateHour['mon']}_{retDateHour['monNam']}/{day}/{hou}.{min_}.{sec}.{mil}_err.txt"
+    fileName = f"logs/Python/ANO_{retDateHour['yea']}/MES_{retDateHour['mon']}_{retDateHour['monNam']}/{day}/{hou}.{min_}.{sec}.{mil}_err.txt"
     os.makedirs(os.path.dirname(fileName), exist_ok=True)
     with open(fileName, "a", encoding="utf-8") as file:
         file.write(f"{str(exceptErr)}\n\n")
@@ -143,9 +144,9 @@ try:
         config = ""
         with open(fullPathJson, "r", encoding="utf-8") as file:
             config = json.load(file)
-        objWebSocket, objSniffer = config["webSocket"], config["sniffer"]
-        securityPass = objWebSocket["securityPass"]
-        portWebSocket = objWebSocket["server"]["1"]["port"]
+        objConnection, objSniffer = config["connection"], config["sniffer"]
+        securityPass = objConnection["securityPass"]
+        portConnection = objConnection["server"]["1"]["port"]
         portMitm, portSocket = objSniffer["portMitm"], objSniffer["portSocket"]
         bufferSocket, arrUrl = objSniffer["bufferSocket"] * 1024, objSniffer["arrUrl"]
         # MANTER APENAS URLS QUE CONTENHAM MAIS DE 7 CARACTERES
@@ -160,7 +161,7 @@ try:
         m = DumpMaster(options, with_termlog=False, with_dumper=False)
         m.addons.add(*addons)
         # NOTIFICAÇÃO SNIFFER: ON
-        urlReq = f"http://127.0.0.1:{portWebSocket}/?roo=OPSEUA-CHROME-CHROME_EXTENSION-USUARIO_0"
+        urlReq = f"http://127.0.0.1:{portConnection}/?roo=OPSEUA-CHROME-CHROME_EXTENSION-USUARIO_0"
         payload = {
             "fun": [
                 {

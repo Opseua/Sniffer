@@ -116,16 +116,22 @@ def stopwatch():
     ]
     for i, (cor_fundo, cor_texto) in enumerate(cores, start=1):
         cronometro = Cronometro(cor_fundo, cor_texto)
+
         # ACIMA DA BARRA DE TAREFAS
-        # cronometro.setGeometry(5, 963 + (i - 1) * 28, 75, 25)
+        cronometro.setGeometry(5, 963 + (i - 1) * 28, 75, 25)
+
         # NA BARRA DE TAREFAS (SEM O MONITOR DE CONSUMO)
         # cronometro.setGeometry(120, 1023 + (i - 1) * 28, 75, 25)
+
         # NA BARRA DE TAREFAS (COM O MONITOR DE CONSUMO [CPU, RAM])
         # cronometro.setGeometry(190, 1023 + (i - 1) * 28, 75, 25)
+
         # NA BARRA DE TAREFAS (COM O MONITOR DE CONSUMO [CPU, RAM, TEMPERATURA])
         # cronometro.setGeometry(225, 1023 + (i - 1) * 28, 75, 25)
+
         # NA BARRA DE TAREFAS (COM O MONITOR DE CONSUMO [CPU, RAM, TEMPERATURA, SSD])
-        cronometro.setGeometry(270, 1023 + (i - 1) * 28, 75, 25)
+        # cronometro.setGeometry(270, 1023 + (i - 1) * 28, 75, 25)
+
         cronometro.show()
         cronometros[str(i)] = cronometro
 

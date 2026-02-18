@@ -1,10 +1,21 @@
 // GET http://localhost:3000/buscaAqui?termos=BARREIROS;RAMOS;RIO
 
-// await correiosServer({ 'makeDb': true, }); // CRIAR BANCO DE DADOS
+// let retCorreiosServer = await correiosServer(); console.log(retCorreiosServer);
+// (CRIAR BANCO DE DADOS)
+// let retCorreiosServer = await correiosServer({ 'mode': 'MAKEDB', }); console.log(retCorreiosServer);
+// CMD → node %fileProjetos%/Sniffer_Python/src/pages/resources/correiosServer.js MAKEDB [OU SEM PARAMETRO}
 
-let e = currentFile(new Error()), ee = e; let libs = { 'http': {}, 'url': {}, 'readline': {}, };
+let e, ee; let libs = { 'http': {}, 'url': {}, 'readline': {}, }; if (!process?.argv) { e = currentFile(new Error()), ee = e; }
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+else if (!globalThis['firstFileCall']) {
+    function clearConsole() { if ((typeof chrome !== 'undefined')) { console.clear(); } else { let p = process.stdout; p.write('\u001b[2J\u001b[0;0H'); p.write('\x1Bc'); } } let msgQtd = 0, nErr = new Error();
+    let runCleCon = console.log; console.log = (...a) => { runCleCon.apply(console, a); msgQtd++; if (msgQtd >= 100) { clearConsole(); msgQtd = 0; console.log('CONSOLE LIMPO!\n'); } }; clearConsole();
+    let argv = process?.argv || []; globalThis['firstFileCall'] = nErr; await import('../../resources/@export.js'); e = firstFileCall, ee = e; await correiosServer({ 'argv': argv.slice(2), });
+} // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 async function correiosServer(inf = {}) {
     let ret = { 'ret': false, }; e = inf.e || e;
+    let xxx = `makeDb`.toLowerCase(); if (inf?.argv?.some(v => v?.toLowerCase()?.includes(xxx))) { xxx = 1; } else if (inf?.mode?.toLowerCase() === xxx || !!inf?.argv) { xxx = 2; }
     try {
         /* IMPORTAR BIBLIOTECA [NODE] */
         libs['http']['createServer'] = 1; libs['url']['parse'] = 1; libs['readline']['createInterface'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer_Python]'); let { promises, createReadStream, } = _fs;
@@ -24,18 +35,19 @@ async function correiosServer(inf = {}) {
         }
 
         // BANCO DE DADOS
-        // [LOG_CPC.TXT] → CAIXAS POSTAIS COMUNITÁRIAS
-        // [LOG_UNID_OPER] → AGÊNCIAS DOS CORREIOS (Rua Artur Rios, 1831, {CDD Oeste}, Senador Vasconcelos, Rio de Janeiro, RJ 23013-970)
-        // [LOG_GRANDE_USUARIO.TXT] → SHOPPINGS POR EXEMPLO (Avenida Professor Carlos Cunha, 3000, Shopping Jaracati, Jaracaty, São Luís, MA, 65076-909)
-        let { makeDb, } = inf; async function dbMake() {
+        // [LOG_CPC.TXT]            → CAIXAS POSTAIS COMUNITÁRIAS
+        // [LOG_UNID_OPER]          → AGÊNCIAS DOS CORREIOS {Rua Artur Rios, 1831, (CDD Oeste), Senador Vasconcelos, Rio de Janeiro, RJ 23013-970}
+        // [LOG_GRANDE_USUARIO.TXT] → SHOPPINGS POR EXEMPLO {Avenida Professor Carlos Cunha, 3000, Shopping Jaracati, Jaracaty, São Luís, MA, 65076-909}
+        let yyy = [], zzz = '"!fileWindows!/BAT/RUN_PORTABLE/AutoHotkey.exe" "!fileChrome_Extension!/src/scripts/BAT/fileMsg.ahk"'; async function dbMake() {
             // APAGAR ARQUIVOS ANTIGOS | → MUNICÍPIOS | → BAIRROS [https://www2.correios.com.br/sistemas/edne/download/eDNE_Basico.zip]
             let p = pathBancoDeDados; for (let f of await promises.readdir(p)) { (await promises.stat(f = p + '\\' + f)).isFile() && await promises.unlink(f); } let municipios = {}; async function dbMunicipios() {
                 let conteudo = await promises.readFile(`${pathCorreios}/LOG_LOCALIDADE.TXT`, 'latin1'), ls = conteudo.split(/\r?\n/);
                 for (let l of ls) { if (l.includes('@')) { let p = l.split('@'); municipios[p[0]] = p[2]; if (!municipios[p[1]]) { municipios[p[1]] = []; } if (p[3]) { municipios[p[1]].push([p[2], p[3],]); } } }
-                logConsole({ e, ee, 'txt': `${Object.keys(municipios).length} → municipios`, });
+                yyy.push(`${Object.keys(municipios).length} → municipios`); logConsole({ e, ee, 'txt': yyy[0], });
             } await dbMunicipios(); let bairros = {}; async function dbBairros() {
                 let conteudo = await promises.readFile(`${pathCorreios}/LOG_BAIRRO.TXT`, 'latin1'), ls = conteudo.split(/\r?\n/);
-                for (let l of ls) { if (l.includes('@')) { let p = l.split('@'), codigo = p[0], nome = p[3]; bairros[codigo] = nome; } } logConsole({ e, ee, 'txt': `${Object.keys(bairros).length} → bairros`, });
+                for (let l of ls) { if (l.includes('@')) { let p = l.split('@'), codigo = p[0], nome = p[3]; bairros[codigo] = nome; } }
+                yyy.push(`${Object.keys(bairros).length} → bairros`); logConsole({ e, ee, 'txt': yyy[1], });
             } await dbBairros();
 
             // → LOGRADOUTO TIPO | LOGRADOUROS | COMPLEMENTOS
@@ -78,7 +90,7 @@ async function correiosServer(inf = {}) {
                     let end = `#${codLogradouroTipo}|${codLogradouro}|${codComplemento}|${codBairro}|${codMunicio}# ${normalizar(`${logradouroTipo} ${logradouro} ${bairro} ${municipio} ${estado} ${cep}`)} \n`;
                     logradourosOk.txt = `${logradourosOk.txt}${end}`; if (!logradourosOk.estados[estado]) { logradourosOk.estados[estado] = cab; } logradourosOk.estados[estado] = `${logradourosOk.estados[estado]}${end}`;
                 }
-            } await logConsole({ e, ee, 'txt': `${qtd} → logradouros`, });
+            } yyy.push(`${qtd} → logradouros`); await logConsole({ e, ee, 'txt': yyy[2], });
 
             async function dataSave(f, d, o, n, k, c) {
                 if (o) { k = Object.keys(d).length; d = JSON.stringify(d); } await promises.writeFile(`${pathBancoDeDados}/${f}`, d, c || 'latin1'); if (n) { await logConsole({ e, ee, 'txt': `${k} → ${n}`, }); }
@@ -88,7 +100,7 @@ async function correiosServer(inf = {}) {
             await dataSave(`estadosMunicipios.js`, `let estadosMunicipios = ${obj}; globalThis['estadosMunicipios'] = estadosMunicipios;`, false, `estados+municipios`, Object.keys(estados).length, 'utf8');
             for (let k in logradourosOk.estados) { await dataSave(`index_${k}.txt`, logradourosOk.estados[k], false); } logradouroTiposOk = {}; logradourosOk = {}; complementosOk = {}; bairrosOk = {};
             bairros = {}; municipiosOk = {}; municipios = {}; estados = {}; await logConsole({ e, ee, 'txt': `BANCO DE DADOS CRIADO!`, });
-        }
+        } if (xxx === 1) { commandLine({ e, 'command': `${zzz} "BANCO DE DADOS SENDO ATUALIZADO...\\\\n\\\\nAguarde!" 3500 HIDE`, }); }
 
         // --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -142,8 +154,8 @@ async function correiosServer(inf = {}) {
 
                     } resEnd({ 'ret': true, 'msg': `CORREIOS SERVER: OK`, 'res': resultados, }); return;
                 } resEnd({ 'ret': false, 'msg': `CORREIOS SERVER: ERRO | ROTA INVÁLIDA`, });
-            }); let port = 7777; server.listen(port, () => { logConsole({ e, ee, 'txt': `SERVIDOR CORREIOS RODANDO http://localhost:${port}`, }); });
-        } if (makeDb) { await dbMake(); } else { await iniciarServidor(); }
+            }); let port = 8763; server.listen(port, () => { logConsole({ e, ee, 'txt': `SERVIDOR CORREIOS RODANDO http://localhost:${port}`, }); });
+        } if ([1, 2,].includes(xxx)) { await dbMake(); if (xxx === 1) { commandLine({ e, 'command': `${zzz} "BANCO DE DADOS ATUALIZADO!\\\\n\\\\n${yyy.join('\\\\n')}"`, }); } } else { await iniciarServidor(); }
 
         ret['msg'] = `ADDRESS FIND: OK`; ret['ret'] = true;
 

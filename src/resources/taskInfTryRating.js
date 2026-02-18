@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
 
-// BLIND [NÃO] → POIEvaluationEN
-// BLIND [SIM] → POIEvaluation
+// BLIND [NÃO] → POIEvaluationEN | BLIND [SIM] → POIEvaluation
 
 let e = currentFile(new Error()), ee = e;
 async function taskInfTryRating(inf = {}) {
@@ -18,10 +17,10 @@ async function taskInfTryRating(inf = {}) {
         function getValueByPath({ obj, path, split, }) { let keys = path.split(split || '.'); return keys.reduce((a, key) => { if (a && key in a) { return a[key]; } return undefined; }, obj); }
         function keysOrder(o, r) { return Object.fromEntries((r || Object.keys(o).sort((a, b) => a.localeCompare(b))).filter(k => k in o).concat(Object.keys(o).filter(k => !r?.includes(k))).map(k => [k, o[k],])); }
         function filterObj({ obj, rules, }) {
-            let newObj = {}; let keysExludeSet = new Set(rules.keysExlude || []); let keysKeepOrder = rules.keysKeepOrder || [];
+            let newObj = {}, keysExludeSet = new Set(rules.keysExlude || []), keysKeepOrder = rules.keysKeepOrder || [];
             keysKeepOrder.forEach(({ keyFather, keyNewName, valuesTypesExlude = [], valuesTypesKeepOrder = [], key, }) => {
                 let k = key || keyFather; if (!obj[k]) { return; } let vals = Array.isArray(obj[k]) ? obj[k] : [obj[k],];
-                let filtered = vals.filter(v => !valuesTypesExlude.includes(typeof v)); let ordered = valuesTypesKeepOrder.flatMap(t => filtered.filter(v => typeof v === t));
+                let filtered = vals.filter(v => !valuesTypesExlude.includes(typeof v)), ordered = valuesTypesKeepOrder.flatMap(t => filtered.filter(v => typeof v === t));
                 let remaining = filtered.filter(v => !valuesTypesKeepOrder.includes(typeof v)); newObj[keyNewName || k] = [...ordered, ...remaining,];
             }); Object.keys(obj).forEach(k => { if (!keysExludeSet.has(k) && !keysKeepOrder.some(r => (r.key || r.keyFather) === k)) { newObj[k] = obj[k]; } }); return newObj;
         }
@@ -39,7 +38,7 @@ async function taskInfTryRating(inf = {}) {
 
         // SEPARAR: TASKS | POSSÍVEIS RESPOSTAS
         async function tasksResponses(inf = {}) {
-            let { obj, } = inf; let { type = 'x', conceptId = 'x', projectId, requestId, templateTaskType, targetLocalIds, timeCreated, } = obj; let taskType = 'x';
+            let { obj, } = inf; let { type = 'x', conceptId = 'x', projectId, requestId, templateTaskType, targetLocalIds, timeCreated, } = obj, taskType = 'x';
             let res = { 'tasks': { '0': { type, conceptId, projectId, requestId, 'hitApp': templateTaskType.replace(/[^a-zA-Z0-9]/g, ''), targetLocalIds, timeCreated, taskType, }, }, 'responses': {}, };
             obj.tasks.forEach(task => {
                 let taskKey = task.taskKey; if (!res.tasks[taskKey]) { res.tasks[taskKey] = {}; }
@@ -57,11 +56,15 @@ async function taskInfTryRating(inf = {}) {
 
         // PEGAR: RESPOSTAS (BUSCANDO PELA CHAVE E VALOR)
         async function responsesGet(inf = {}) {
-            let { 'questionsOptions': questionsOptionsObj, 'tasksResponses': tasksResponsesObj, } = inf; let { tasks, responses, } = tasksResponsesObj; let res = { 'searchByKey': [], 'searchByValue': [], };
-            let getValues = (data) => Array.isArray(data) ? data.map(i => i.value) : [data.value ?? data,]; let infObjFilter, retObjFilter; for (let [index, value,] of Object.keys(tasks).filter(k => k !== '0').entries()) {
-                let father = value; let childrens = Object.keys(tasks[father]).filter(k => k !== '0'); for (let [index1, value1,] of childrens.entries()) {
+            let { 'questionsOptions': questionsOptionsObj, 'tasksResponses': tasksResponsesObj, } = inf; let { tasks, responses, } = tasksResponsesObj, res = { 'searchByKey': [], 'searchByValue': [], };
+
+            // ADICIONAR CHAVE PARA TENTAR BUSCAR POR RESPOSTA NA CHAVE 'taskData' (NÍVEL PAI)
+            let keyName = 'FAKE_QUESTION', keysAdd = ['text', 'comment',]; for (let v of keysAdd) { questionsOptionsObj[v] ||= { 'fieldType': 'Input', 'question': keyName, 'options': [], }; }
+
+            let getValues = (data) => Array.isArray(data) ? data.map(i => i.value) : [data?.value ?? data,], infObjFilter, retObjFilter; for (let [idx, value,] of Object.keys(tasks).filter(k => k !== '0').entries()) {
+                let father = value, childrens = Object.keys(tasks[father]).filter(k => k !== '0'); for (let [index1, value1,] of childrens.entries()) {
                     let children = value1; for (let [index2, value2,] of Object.keys(questionsOptionsObj).entries()) {
-                        let ratingFieldKey = value2; value2 = questionsOptionsObj[value2]; let { fieldType, question, options, } = value2; let keys = [ratingFieldKey,];
+                        let ratingFieldKey = value2; value2 = questionsOptionsObj[value2]; let { fieldType, question, options, } = value2, keys = [ratingFieldKey,];
                         let valuesLabel = options.some(i => i.label) ? options.map(i => i.label) : [], valuesValue = options.some(i => i.value) ? options.map(i => i.value) : [];
 
                         // ------------------------------------------------------------------- (ANTIGO) -------------------------------------------------------------------------------------------------------
@@ -109,13 +112,15 @@ async function taskInfTryRating(inf = {}) {
                         // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     }
                 }
-            } return res;
+            }
+            for (let k in res) { res[k] = res[k].filter(o => o.question !== keyName || keysAdd.some(v => o.path === `${o.father}.${o.children}.${v}`)); } // REMOVER RESPOSTAS INVÁLIDAS NA CHAVE 'taskData' (NÍVEL PAI)
+            return res;
         }
 
         // FILTRAR: RESPOSTAS [DUPLICADOS EM 'value' E 'label' AO MESMO TEMPO] | 'false' DO 'Business/POI is closed or does not exist' | 'ratingFieldKey' NÃO CORRESPONDENTE
         async function responsesFilter(inf = {}) {
-            let { 'responsesGet': responsesGetObj, } = inf; let { searchByKey, searchByValue, } = responsesGetObj; let res = {}; for (let [index, valueOk,] of [...searchByKey, ...searchByValue,].entries()) {
-                let { father, children, fieldType, ratingFieldKey, question, path, type, value, optionsIgnore, } = valueOk; let alternativeMode = ['byKey-labelAAA', 'byKey-value',].includes(type);
+            let { 'responsesGet': responsesGetObj, } = inf; let { searchByKey, searchByValue, } = responsesGetObj, res = {}; for (let [index, valueOk,] of [...searchByKey, ...searchByValue,].entries()) {
+                let { father, children, fieldType, ratingFieldKey, question, path, type, value, optionsIgnore, } = valueOk, alternativeMode = ['byKey-label', 'byKey-value',].includes(type);
                 if (!(fieldType === 'checkbox' && value[0] !== true)) {
                     if ((path.toLowerCase() + '.').includes(`.${ratingFieldKey.toLowerCase()}.`) || alternativeMode) {
                         if (!res[father]) { res[father] = {}; } if (!res[father][children]) { res[father][children] = {}; }
@@ -132,14 +137,14 @@ async function taskInfTryRating(inf = {}) {
         // qualityNum: 0 → [REQUIRED FOR QUALIFICATION TEST: ???] | 1 → [REQUIRED FOR QUALIFICATION TEST: NÃO] | 2 → [REQUIRED FOR QUALIFICATION TEST: SIM]
         async function returnObj(inf = {}) {
             let clip = {}, add = { 'blindNum': 0, 'qualityNum': 0, 'qtdJudge': 0, 'qtdBlind': 0, 'qtdResp': 0, 'qtdQuality': 0, }, { 'tasksResponses': tasksResponsesObj, 'responsesFilter': responsesFilterObj, compact, } = inf;
-            let { tasks, } = tasksResponsesObj; let { type, conceptId, projectId, requestId, hitApp, targetLocalIds, timeCreated, taskType, } = tasks['0'];
+            let { tasks, } = tasksResponsesObj, { type, conceptId, projectId, requestId, hitApp, targetLocalIds, timeCreated, taskType, } = tasks['0'];
             let res = { type, conceptId, projectId, requestId, hitApp, targetLocalIds, timeCreated, 'tasks': { '0': { ...add, taskType, }, }, };
             for (let [index, value,] of Object.keys(tasks).filter(k => k !== '0').entries()) {
                 let father = value, childrens = Object.keys(tasks[father]).filter(k => k !== '0'); if (!res.tasks[father]) { res.tasks[father] = { '0': { ...add, }, }; }
                 for (let [index1, value1,] of childrens.entries()) { /// SE TEM A CHAVE 'created' NÃO É BLIND
-                    let children = value1; if (!res.tasks[father][children]) { delete tasks[father][children].taskType; res.tasks[father][children] = { '0': { 'blindNum': 0, 'qualityNum': 0, }, judge: 'x', task: tasks[father][children], }; }
+                    let children = value1; if (!res.tasks[father][children]) { delete tasks[father][children].taskType; res.tasks[father][children] = { '0': { 'blindNum': 0, 'qualityNum': 0, }, 'judge': 'x', 'task': tasks[father][children], }; }
                     let judge = res.tasks[father][children]['task'], judgeObj = judge, blindNum = 0, qualityNum = 0, notIsBlind = !!res.tasks[father][children]['task']?.metadata?.created;
-                    let idxTask = taskType === 'tasks' ? index : index1; let quality = judgeObj?.testQuestionInformation?.requiredForQualificationTest; quality = quality === undefined ? null : quality;
+                    let idxTask = taskType === 'tasks' ? index : index1, quality = judgeObj?.testQuestionInformation?.requiredForQualificationTest; quality = quality === undefined ? null : quality;
 
                     // CHAVES QUE PODEM TER A RESPOSTA
                     let ___text = judgeObj?.text, ___comment = judgeObj?.testQuestionInformation?.comment; ___text = ___text === undefined ? null : ___text; ___comment = ___comment === undefined ? null : ___comment;
@@ -219,7 +224,7 @@ async function taskInfTryRating(inf = {}) {
                 retFile = await file({ 'action': 'read', 'path': value, }); if (!retFile.ret) { return retFile; } retFile = JSON.parse(retFile.res); let requestId = retFile.requestId;
                 if (!arrRequestId.includes(requestId)) { arrRequestId.push(requestId); arrBody.push({ 'path': value, 'body': retFile, }); }
             } console.log(`TOTAL: ${arrPaths.length} | SEM ID DUPLICADO: ${arrBody.length}`);
-        } let pathReg = `${fileProjetos}/${gW.project}/${base}/z_OUTROS/regTryRating.txt`; if (reg) { await file({ e, 'action': 'write', 'path': pathReg, 'content': 'x\n', }); }
+        } let pathReg = `${fileProjetos}/${gW.project}/${base}/z_OUTROS/z_regTryRating.txt`; if (reg) { await file({ e, 'action': 'write', 'path': pathReg, 'content': 'x\n', }); }
 
         // ******************************************************************************************************************************************************************************************************************
 
@@ -236,7 +241,7 @@ async function taskInfTryRating(inf = {}) {
             let retReturnObj = await returnObj({ 'tasksResponses': retTasksResponses, 'responsesFilter': retResponsesFilter, 'compact': true, }); // console.log(JSON.stringify(retReturnObj), '\n');
 
             let r = retReturnObj, hitApp = r.res.hitApp, blindNum = r.res.tasks['0'].blindNum, path = value.path; if (path) { path = path.split(`/`); path = path[path.length - 1].replace('.txt', ''); }
-            let d = dateHour(new Date(r.res.timeCreated * 1000)).res; let timeCreated = `${d.day}/${d.mon}/${d.yea}`; if (reg) {
+            let d = dateHour(new Date(r.res.timeCreated * 1000)).res, timeCreated = `${d.day}/${d.mon}/${d.yea}`; if (reg) {
                 // REGISTRAR NO TXT
                 let targetLocalIds = r.res.targetLocalIds, taskType = r.res.tasks['0'].taskType, type = r.res.type, conceptId = r.res.conceptId, projectId = r.res.projectId, requestId = r.res.requestId;
                 let metadata = Object.values(r.res.tasks).flatMap(task => Object.values(task || {}).map(s => s.task?.metadata && Object.keys(s.task.metadata).length > 0)).filter(v => v !== undefined).join(' | ');
@@ -267,7 +272,7 @@ async function taskInfTryRating(inf = {}) {
 
         // REDUZIR RESPOSTA PARA OTIMIZAR A LEITURA
         let clipOk = {}, clip = res?.clip, order = [`eligibility`, `state`, `url`, `name`, `address`, `pin`, `phone`, `category`, `hours`,], keys = ['label', 'value',];
-        let ignoreDuplicateKeys = true, ignoreTranslate = !!test, ignoreBreakLine = false; let tasksArr = [`POIEvaluation`, `POIEvaluationEN`,]; if (clip) {
+        let ignoreDuplicateKeys = true, ignoreTranslate = !!test, ignoreBreakLine = false, tasksArr = [`POIEvaluation`, `POIEvaluationEN`,]; if (clip) {
             let x = { order, keys, ignoreDuplicateKeys, ignoreTranslate, ignoreBreakLine, }; for (let key in clip) {
                 if (tasksArr.includes(key) && Array.isArray(clip[key])) {
                     clipOk[key] = []; for (let item of clip[key]) { let retOk = await taskInfReduceTryRating({ 'obj': item, ...x, }); clipOk[key].push(retOk?.res || item); }
