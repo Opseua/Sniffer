@@ -3,7 +3,7 @@ let startup = new Date(); globalThis['firstFileCall'] = new Error(); await impor
 async function serverRun(inf = {}) {
     let ret = { 'ret': false, }; e = inf.e || e;
     try {
-        /* IMPORTAR BIBLIOTECA [NODE] */ libs['http']['http'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer]');//
+        /* IMPORTAR BIBLIOTECA [NODE] */ libs['http']['http'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer]');
 
         await logConsole({ e, ee, 'txt': `**************** SERVER **************** [${startupTime(startup, new Date())}]`, });
 
@@ -19,7 +19,8 @@ async function serverRun(inf = {}) {
 
         async function wait() { // [1 SEGUNDO APÓS INICIAR] BADGE (USUARIO_3): RESETAR | PAC FILE
             await new Promise(r => { setTimeout(r, 250); }); client({ e, }); /* CLIENT (NÃO POR COMO 'await'!!!) [MANTER NO FINAL] */ await new Promise(r => { setTimeout(r, 500); });
-            messageSend({ 'destination': des, 'message': { 'fun': [{ 'securityPass': gW.securityPass, 'name': 'chromeActions', 'par': { e, 'action': 'badge', 'text': '', }, },], }, }); await new Promise(r => { setTimeout(r, 150); });
+            messageSend({ 'destination': des, 'message': { 'fun': [{ 'securityPass': gW.securityPass, 'name': 'chromeActions', 'par': { e, 'action': 'badge', 'text': '', }, },], }, });
+            await new Promise(r => { setTimeout(r, 150); });
         } function rReqRes(text, getSend, getSendOk, pattern) { return (regex({ 'simple': true, pattern, text, }) && getSend === getSendOk); } await wait(); function checkIsString(h) {
             h = h['content-type'] || ''; return (h.startsWith('text/') || h.includes('json') || h.includes('xml') || h.includes('javascript') || h.includes('x-www-form-urlencoded') || h.includes('graphql')) || h;
         } globalThis['targetAlert'] = function (pla, tar, typ) { logConsole({ e, ee, 'txt': `### ${pla} |${typ === true ? '' : ' (BUFFER 🛑)'} ${tar}`, }); };
@@ -83,7 +84,8 @@ async function serverRun(inf = {}) {
                 let r = await file({ e, 'action': 'read', 'path': `${p}/${v1.file.includes(`1-GET_##_VAZIO_##`) ? `` : `${l[0]}/${v.hitApp}/`}${v1.file.replace('${hitAppType}', v.hitAppType)}`, 'encoding': false, });
                 if (!r.ret) { console.log(r.msg); break; } await funGetSend({ 'getSend': v1.getSend, 'url': arrUrl[l[0]][v1.url], 'body': r.res, 'headers': !v1.midia ? hX[0] : hX[1], 'teste': t, }); await xTim(2000);
             } // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* ERROS SERVIDOR (ERROS QUE NÃO SEJAM DO DESLIGAMENTO DO SNIFFER) *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-        } async function serverErr(r) { let e = r.toString(); if (e.includes('EADDRINUSE') || !e.includes('ECONNRESET')) { await regexE({ inf, 'e': r, }); process.exit(1); } } let serSoc = _http.createServer((req, res) => {
+        } async function serverErr(r) { let e = r.toString(); if (e.includes('EADDRINUSE') || !e.includes('ECONNRESET')) { await regexE({ inf, 'e': r, }); process.exit(1); } }
+        let serSoc = _http.createServer((req, res) => {
             let buffers = []; req.on('data', chunk => { buffers.push(chunk); }); let { 'x-getsend': getSend, 'x-method': method, 'x-url': url, 'x-headers': headers, } = req.headers; req.on('end', async () => {
                 let body = Buffer.concat(buffers), ret = await funGetSend({ getSend, method, url, headers, body, }), action = ret?.res?.action || 2; buffers = '';
                 body = false; res.setHeader('Content-Type', 'application/octet-stream'); if (action === 0) { buffers = `CANCELADA`; } else if (action === 1) {
