@@ -10,7 +10,7 @@ from threading import Thread
 import logging
 
 # VARIÁVEIS
-fileChrome_Extension = os.getenv("fileChrome_Extension").replace(r"\\", "/")
+fileExtension = os.getenv("fileExtension").replace(r"\\", "/")
 
 # IGNORAR ERROS DO SEERVIDOR HTTP
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
@@ -98,7 +98,7 @@ def control(action, id):
 
 def run_flask_server():
     # LER O CONFIG E DEFINIR AS VARIÁVEI
-    fullPathJson = os.path.abspath(f"{fileChrome_Extension}/src/config.json")
+    fullPathJson = os.path.abspath(f"{fileExtension}/src/config.json")
     config = ""
     with open(fullPathJson, "r", encoding="utf-8") as file:
         config = json.load(file)

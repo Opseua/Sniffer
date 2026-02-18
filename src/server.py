@@ -9,7 +9,7 @@ sys.stderr = open(os.devnull, "w")
 
 # ------------------------------------------------------------------------------------
 # [PADRÃO EM TODOS OS PROJETOS]
-fileChrome_Extension = os.getenv("fileChrome_Extension").replace("\\", "/")
+fileExtension = os.getenv("fileExtension").replace("\\", "/")
 fileProjetos = os.getenv("fileProjetos").replace("\\", "/")
 projectName = os.path.abspath(__file__).split("PROJETOS\\")[1].split("\\src")[0]
 projectPath = f"{fileProjetos}/{projectName}".replace("\\", "/")
@@ -140,7 +140,7 @@ try:
     async def serverRun():
         global arrUrl, portSocket, bufferSocket
         # LER O CONFIG E DEFINIR AS VARIÁVEL
-        fullPathJson = os.path.abspath(f"{fileChrome_Extension}/src/config.json")
+        fullPathJson = os.path.abspath(f"{fileExtension}/src/config.json")
         config = ""
         with open(fullPathJson, "r", encoding="utf-8") as file:
             config = json.load(file)
@@ -161,7 +161,7 @@ try:
         m = DumpMaster(options, with_termlog=False, with_dumper=False)
         m.addons.add(*addons)
         # NOTIFICAÇÃO SNIFFER: ON
-        urlReq = f"http://127.0.0.1:{portConnection}/?roo=OPSEUA-CHROME-CHROME_EXTENSION-USUARIO_0"
+        urlReq = f"http://127.0.0.1:{portConnection}/?roo=OPSEUA-CHROME-EXTENSION-USUARIO_0"
         payload = {
             "fun": [
                 {

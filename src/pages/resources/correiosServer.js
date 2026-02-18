@@ -38,7 +38,7 @@ async function correiosServer(inf = {}) {
         // [LOG_CPC.TXT]            → CAIXAS POSTAIS COMUNITÁRIAS
         // [LOG_UNID_OPER]          → AGÊNCIAS DOS CORREIOS {Rua Artur Rios, 1831, (CDD Oeste), Senador Vasconcelos, Rio de Janeiro, RJ 23013-970}
         // [LOG_GRANDE_USUARIO.TXT] → SHOPPINGS POR EXEMPLO {Avenida Professor Carlos Cunha, 3000, Shopping Jaracati, Jaracaty, São Luís, MA, 65076-909}
-        let yyy = [], zzz = '"!fileWindows!/BAT/RUN_PORTABLE/AutoHotkey.exe" "!fileChrome_Extension!/src/scripts/BAT/fileMsg.ahk"'; async function dbMake() {
+        let yyy = [], zzz = '"!fileWindows!/BAT/RUN_PORTABLE/AutoHotkey.exe" "!fileExtension!/src/scripts/BAT/fileMsg.ahk"'; async function dbMake() {
             // APAGAR ARQUIVOS ANTIGOS | → MUNICÍPIOS | → BAIRROS [https://www2.correios.com.br/sistemas/edne/download/eDNE_Basico.zip]
             let p = pathBancoDeDados; for (let f of await promises.readdir(p)) { (await promises.stat(f = p + '\\' + f)).isFile() && await promises.unlink(f); } let municipios = {}; async function dbMunicipios() {
                 let conteudo = await promises.readFile(`${pathCorreios}/LOG_LOCALIDADE.TXT`, 'latin1'), ls = conteudo.split(/\r?\n/);

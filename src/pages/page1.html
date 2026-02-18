@@ -39,7 +39,7 @@
             if (!valueInput1 && !valueInput2 && !valueInput3) {
                 document.getElementById('input1').placeholder = 'Nada foi inserido'; setTimeout(() => { document.getElementById('input1').placeholder = 'Digite algo...'; }, 1000);
             } else {
-                let url = `${ipServer}?roo=OPSEUA-CHROME-CHROME_EXTENSION-USUARIO_3`, retFetch = await fetch(url, {
+                let url = `${ipServer}?roo=OPSEUA-CHROME-EXTENSION-USUARIO_3`, retFetch = await fetch(url, {
                     'method': 'POST', 'headers': { 'Content-Type': 'application/json', 'mode': 'raw', }, 'body': JSON.stringify({
                         'fun': [{
                             'securityPass': securityPass, 'retInf': true, 'name': 'commands', 'par': {
