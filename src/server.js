@@ -3,7 +3,7 @@ let startup = new Date(); globalThis['firstFileCall'] = new Error(); await impor
 async function serverRun(inf = {}) {
     let ret = { 'ret': false, }; e = inf.e || e;
     try {
-        /* IMPORTAR BIBLIOTECA [NODE] */ libs['http']['http'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer_Python]');
+        /* IMPORTAR BIBLIOTECA [NODE] */ libs['http']['http'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer]');//
 
         await logConsole({ e, ee, 'txt': `**************** SERVER **************** [${startupTime(startup, new Date())}]`, });
 

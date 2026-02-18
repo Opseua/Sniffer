@@ -3,7 +3,7 @@
 // let retCorreiosServer = await correiosServer(); console.log(retCorreiosServer);
 // (CRIAR BANCO DE DADOS)
 // let retCorreiosServer = await correiosServer({ 'mode': 'MAKEDB', }); console.log(retCorreiosServer);
-// CMD → node %fileProjetos%/Sniffer_Python/src/pages/resources/correiosServer.js MAKEDB [OU SEM PARAMETRO}
+// CMD → node %fileProjetos%/Sniffer/src/pages/resources/correiosServer.js MAKEDB [OU SEM PARAMETRO}
 
 let e, ee; let libs = { 'http': {}, 'url': {}, 'readline': {}, }; if (!process?.argv) { e = currentFile(new Error()), ee = e; }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,8 +18,8 @@ async function correiosServer(inf = {}) {
     let xxx = `makeDb`.toLowerCase(); if (inf?.argv?.some(v => v?.toLowerCase()?.includes(xxx))) { xxx = 1; } else if (inf?.mode?.toLowerCase() === xxx || !!inf?.argv) { xxx = 2; }
     try {
         /* IMPORTAR BIBLIOTECA [NODE] */
-        libs['http']['createServer'] = 1; libs['url']['parse'] = 1; libs['readline']['createInterface'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer_Python]'); let { promises, createReadStream, } = _fs;
-        let path = `${fileProjetos}/Sniffer_Python/logs/z_Arruamento`; function normalizar(texto) { return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\s]/g, '').trim(); }
+        libs['http']['createServer'] = 1; libs['url']['parse'] = 1; libs['readline']['createInterface'] = 1; libs = await importLibs(libs, 'serverRun [Sniffer]'); let { promises, createReadStream, } = _fs;
+        let path = `${fileProjetos}/Sniffer/logs/z_Arruamento`; function normalizar(texto) { return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\s]/g, '').trim(); }
         let pathBancoDeDados = `${path}/bancoDeDados`, pathCorreios = `${path}/correios/eDNE_Basico/Delimitado`; function analisarComplemento(complemento) {
             let texto = complemento.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             if (!(texto.startsWith(`- ate `) || texto.startsWith(`- de `) || texto.startsWith(`- lado `))) { return { 'lado': 'A', 'numInicial': '1', 'numFinal': '99999', }; }
